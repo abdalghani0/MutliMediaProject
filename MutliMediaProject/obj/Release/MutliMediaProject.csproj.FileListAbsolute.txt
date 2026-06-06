@@ -1,0 +1,9 @@
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Release\MutliMediaProject.exe.config
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Release\MutliMediaProject.exe
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Release\MutliMediaProject.pdb
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Release\MutliMediaProject.csproj.AssemblyReference.cache
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Release\MutliMediaProject.Properties.Resources.resources
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Release\MutliMediaProject.csproj.GenerateResource.cache
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Release\MutliMediaProject.csproj.CoreCompileInputs.cache
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Release\MutliMediaProject.exe
+c:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Release\MutliMediaProject.pdb

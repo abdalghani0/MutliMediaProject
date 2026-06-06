@@ -43,17 +43,36 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\AdaptiveDeltaModulationCompressor.cs" />
+    <Compile Include="Compression\BitReader.cs" />
+    <Compile Include="Compression\BitWriter.cs" />
+    <Compile Include="Compression\CompressorFactory.cs" />
+    <Compile Include="Compression\DeltaModulationCompressor.cs" />
+    <Compile Include="Compression\DpcmCompressor.cs" />
+    <Compile Include="Compression\IAudioCompressor.cs" />
+    <Compile Include="Compression\NonlinearQuantizationCompressor.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\AudioFile.cs" />
+    <Compile Include="Models\CompressionAlgorithm.cs" />
+    <Compile Include="Models\CompressionResult.cs" />
+    <Compile Include="Models\CompressionSettings.cs" />
+    <Compile Include="Models\ProgressUpdate.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AudioPlayer.cs" />
+    <Compile Include="Services\CompressedFileFormat.cs" />
+    <Compile Include="Services\Resampler.cs" />
+    <Compile Include="Services\WavReader.cs" />
+    <Compile Include="Services\WavWriter.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
