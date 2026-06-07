@@ -1,113 +1,85 @@
 using System;
-using System.Runtime.InteropServices;
-using System.Text;
+using NAudio.Wave;
 
 namespace MutliMediaProject.Services
 {
     /// <summary>
-    /// Thin wrapper around the Windows Multimedia Control Interface (winmm.dll).
-    /// Provides play / pause / resume / stop and reports playback position so the
-    /// UI can show the current playhead without bundling third-party libraries.
+    /// Preview playback using NAudio's <see cref="WaveFileReader"/> and <see cref="WaveOutEvent"/>.
+    /// Uses 16-bit PCM for broad waveOut device compatibility.
     /// </summary>
     public sealed class AudioPlayer : IDisposable
     {
-        [DllImport("winmm.dll", CharSet = CharSet.Auto)]
-        private static extern int mciSendString(string command, StringBuilder buffer, int bufferSize, IntPtr hwndCallback);
+        private WaveOutEvent _output;
+        private WaveFileReader _reader;
 
-        private string _alias;
-        private bool _isOpen;
-        private bool _isPlaying;
-        private bool _isPaused;
-
-        public bool IsPlaying => _isPlaying && !_isPaused;
-        public bool IsPaused => _isPaused;
-        public bool IsLoaded => _isOpen;
+        public bool IsPlaying => _output != null && _output.PlaybackState == PlaybackState.Playing;
+        public bool IsPaused => _output != null && _output.PlaybackState == PlaybackState.Paused;
+        public bool IsLoaded => _reader != null;
 
         public void Load(string path)
         {
             Close();
-            _alias = "audio_" + Guid.NewGuid().ToString("N");
-            string cmd = string.Format("open \"{0}\" type mpegvideo alias {1}", path, _alias);
-            int code = mciSendString(cmd, null, 0, IntPtr.Zero);
-            if (code != 0)
+
+            var reader = new WaveFileReader(path);
+            var output = new WaveOutEvent();
+            try
             {
-                // Fallback: let MCI infer the type. Works for WAV and most common containers.
-                cmd = string.Format("open \"{0}\" alias {1}", path, _alias);
-                code = mciSendString(cmd, null, 0, IntPtr.Zero);
-                if (code != 0) throw new InvalidOperationException("Could not load audio for playback (MCI code " + code + ").");
+                output.Init(reader);
+                _reader = reader;
+                _output = output;
             }
-            _isOpen = true;
+            catch
+            {
+                output.Dispose();
+                reader.Dispose();
+                throw;
+            }
         }
 
         public void Play()
         {
-            if (!_isOpen) return;
-            if (_isPaused)
-            {
-                mciSendString("resume " + _alias, null, 0, IntPtr.Zero);
-                _isPaused = false;
-            }
-            else
-            {
-                mciSendString("play " + _alias, null, 0, IntPtr.Zero);
-            }
-            _isPlaying = true;
+            if (_output == null) return;
+            _output.Play();
         }
 
         public void Pause()
         {
-            if (!_isOpen || !_isPlaying) return;
-            mciSendString("pause " + _alias, null, 0, IntPtr.Zero);
-            _isPaused = true;
+            if (_output == null || _output.PlaybackState != PlaybackState.Playing) return;
+            _output.Pause();
         }
 
         public void Stop()
         {
-            if (!_isOpen) return;
-            mciSendString("stop " + _alias, null, 0, IntPtr.Zero);
-            mciSendString("seek " + _alias + " to start", null, 0, IntPtr.Zero);
-            _isPlaying = false;
-            _isPaused = false;
+            if (_output == null) return;
+            _output.Stop();
+            _reader.Position = 0;
         }
 
-        public TimeSpan GetPosition()
-        {
-            if (!_isOpen) return TimeSpan.Zero;
-            var sb = new StringBuilder(128);
-            mciSendString("status " + _alias + " position", sb, sb.Capacity, IntPtr.Zero);
-            int ms;
-            return int.TryParse(sb.ToString(), out ms) ? TimeSpan.FromMilliseconds(ms) : TimeSpan.Zero;
-        }
+        public TimeSpan GetPosition() => _reader?.CurrentTime ?? TimeSpan.Zero;
 
-        public TimeSpan GetLength()
-        {
-            if (!_isOpen) return TimeSpan.Zero;
-            var sb = new StringBuilder(128);
-            mciSendString("status " + _alias + " length", sb, sb.Capacity, IntPtr.Zero);
-            int ms;
-            return int.TryParse(sb.ToString(), out ms) ? TimeSpan.FromMilliseconds(ms) : TimeSpan.Zero;
-        }
+        public TimeSpan GetLength() => _reader?.TotalTime ?? TimeSpan.Zero;
 
         public string GetMode()
         {
-            if (!_isOpen) return string.Empty;
-            var sb = new StringBuilder(128);
-            mciSendString("status " + _alias + " mode", sb, sb.Capacity, IntPtr.Zero);
-            return sb.ToString().Trim();
+            return _output == null ? string.Empty : _output.PlaybackState.ToString();
         }
 
         public void Close()
         {
-            if (_isOpen)
+            if (_output != null)
             {
-                mciSendString("close " + _alias, null, 0, IntPtr.Zero);
-                _isOpen = false;
-                _isPlaying = false;
-                _isPaused = false;
-                _alias = null;
+                _output.Stop();
+                _output.Dispose();
+                _output = null;
+            }
+
+            if (_reader != null)
+            {
+                _reader.Dispose();
+                _reader = null;
             }
         }
 
-        public void Dispose() { Close(); }
+        public void Dispose() => Close();
     }
 }

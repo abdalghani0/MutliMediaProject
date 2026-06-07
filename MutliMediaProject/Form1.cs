@@ -227,6 +227,12 @@ namespace MutliMediaProject
                 lblPreviewSource.Text = "Source: (decompress first to enable preview)";
 
                 var container = CompressedFileFormat.Read(path);
+                if (!Enum.IsDefined(typeof(CompressionAlgorithm), container.Algorithm))
+                {
+                    throw new InvalidDataException(
+                        "This compressed file uses an unsupported algorithm (possibly an older ADM file). " +
+                        "Please compress again with one of the current algorithms.");
+                }
                 _compressedOutput = container;
                 _loadedAudio = null;
                 _decompressedSamples = null;
@@ -258,13 +264,8 @@ namespace MutliMediaProject
                 numQuantBits.Value = Math.Min(numQuantBits.Maximum, Math.Max(numQuantBits.Minimum, container.BitsPerCode));
                 if (container.Algorithm == CompressionAlgorithm.NonlinearQuantization)
                     numMu.Value = (decimal)Math.Min((float)numMu.Maximum, Math.Max((float)numMu.Minimum, container.Param1));
-                else if (container.Algorithm == CompressionAlgorithm.DeltaModulation
-                      || container.Algorithm == CompressionAlgorithm.AdaptiveDeltaModulation)
-                {
+                else if (container.Algorithm == CompressionAlgorithm.DeltaModulation)
                     numStep.Value = (decimal)Math.Min((float)numStep.Maximum, Math.Max((float)numStep.Minimum, container.Param1));
-                    if (container.Algorithm == CompressionAlgorithm.AdaptiveDeltaModulation)
-                        numMaxStep.Value = (decimal)Math.Min((float)numMaxStep.Maximum, Math.Max((float)numMaxStep.Minimum, container.Param2));
-                }
 
                 ResetCharts();
                 txtReport.Clear();
@@ -365,13 +366,10 @@ namespace MutliMediaProject
             bool isNlq = alg == CompressionAlgorithm.NonlinearQuantization;
             bool isDpcm = alg == CompressionAlgorithm.DifferentialPcm;
             bool isDm  = alg == CompressionAlgorithm.DeltaModulation;
-            bool isAdm = alg == CompressionAlgorithm.AdaptiveDeltaModulation;
 
             numQuantBits.Enabled = (isNlq || isDpcm) && !_busy;
             numMu.Enabled = isNlq && !_busy;
-            numStep.Enabled = (isDm || isAdm) && !_busy;
-            numMinStep.Enabled = isAdm && !_busy;
-            numMaxStep.Enabled = isAdm && !_busy;
+            numStep.Enabled = isDm && !_busy;
         }
 
         private void BtnResetSettings_Click(object sender, EventArgs e)
@@ -389,8 +387,6 @@ namespace MutliMediaProject
             numQuantBits.Value = Math.Min(numQuantBits.Maximum, Math.Max(numQuantBits.Minimum, s.QuantizationBits));
             numMu.Value = (decimal)Math.Min((float)numMu.Maximum, Math.Max((float)numMu.Minimum, s.Mu));
             numStep.Value = (decimal)Math.Min((float)numStep.Maximum, Math.Max((float)numStep.Minimum, s.StepSize));
-            numMinStep.Value = (decimal)Math.Min((float)numMinStep.Maximum, Math.Max((float)numMinStep.Minimum, s.MinStepSize));
-            numMaxStep.Value = (decimal)Math.Min((float)numMaxStep.Maximum, Math.Max((float)numMaxStep.Minimum, s.MaxStepSize));
             UpdateSettingsControlsEnabled();
         }
 
@@ -402,9 +398,7 @@ namespace MutliMediaProject
                 TargetSampleRate = (int)numSampleRate.Value,
                 QuantizationBits = (int)numQuantBits.Value,
                 Mu = (float)numMu.Value,
-                StepSize = (float)numStep.Value,
-                MinStepSize = (float)numMinStep.Value,
-                MaxStepSize = (float)numMaxStep.Value
+                StepSize = (float)numStep.Value
             };
         }
 
@@ -573,15 +567,15 @@ namespace MutliMediaProject
                 long totalIn = 0;
                 for (int i = 0; i < _compressedOutput.Channels; i++)
                     totalIn += _compressedOutput.ChannelData[i].Length;
-                double finalSeconds = Math.Max(0.001, sw.Elapsed.TotalSeconds);
+                double finalMs = sw.Elapsed.TotalMilliseconds;
                 double finalRatio = totalIn > 0
                     ? ((long)_compressedOutput.SamplesPerChannel * _compressedOutput.Channels * 2.0) / totalIn
                     : 0;
                 double finalSpeed = sw.Elapsed.TotalSeconds > 0
                     ? (totalIn / 1024.0 / 1024.0) / sw.Elapsed.TotalSeconds
                     : 0;
-                AddChartPoint(chartRatio, "ratio", finalSeconds, finalRatio);
-                AddChartPoint(chartSpeed, "speed", finalSeconds, finalSpeed);
+                AddChartPoint(chartRatio, "ratio", finalMs, finalRatio);
+                AddChartPoint(chartSpeed, "speed", finalMs, finalSpeed);
 
                 // Write a temp WAV and load it for preview so the user can hear the decoded audio.
                 try
@@ -745,9 +739,8 @@ namespace MutliMediaProject
             if (_lastChartAtMs < 0 || p.ElapsedMilliseconds - _lastChartAtMs >= ChartThrottleMs)
             {
                 _lastChartAtMs = p.ElapsedMilliseconds;
-                double seconds = Math.Max(0.001, p.ElapsedMilliseconds / 1000.0);
-                AddChartPoint(chartRatio, "ratio", seconds, p.CurrentRatio);
-                AddChartPoint(chartSpeed, "speed", seconds, p.SpeedMBps);
+                AddChartPoint(chartRatio, "ratio", p.ElapsedMilliseconds, p.CurrentRatio);
+                AddChartPoint(chartSpeed, "speed", p.ElapsedMilliseconds, p.SpeedMBps);
             }
         }
 
@@ -760,22 +753,54 @@ namespace MutliMediaProject
 
         private void AddChartPointFinal(CompressionResult r, double seconds)
         {
-            double s = Math.Max(0.001, seconds);
-            AddChartPoint(chartRatio, "ratio", s, r.CompressionRatio);
+            double elapsedMs = Math.Max(1, seconds * 1000.0);
+            AddChartPoint(chartRatio, "ratio", elapsedMs, r.CompressionRatio);
             double speed = seconds > 0 ? (r.OriginalSizeBytes / 1024.0 / 1024.0) / seconds : 0;
-            AddChartPoint(chartSpeed, "speed", s, speed);
+            AddChartPoint(chartSpeed, "speed", elapsedMs, speed);
         }
 
         /// <summary>
-        /// Append a (time, value) point to a chart's series and cap the visible
-        /// history so very long runs don't degrade rendering performance.
+        /// Append a (timeMs, value) point and rescale axes to readable whole-number ticks.
         /// </summary>
-        private static void AddChartPoint(System.Windows.Forms.DataVisualization.Charting.Chart chart, string seriesName, double x, double y)
+        private static void AddChartPoint(System.Windows.Forms.DataVisualization.Charting.Chart chart, string seriesName, double timeMs, double y)
         {
             var points = chart.Series[seriesName].Points;
-            points.AddXY(x, y);
+            points.AddXY(timeMs, y);
             const int maxPoints = 600;
             while (points.Count > maxPoints) points.RemoveAt(0);
+            RefreshChartScale(chart);
+        }
+
+        private static void RefreshChartScale(System.Windows.Forms.DataVisualization.Charting.Chart chart)
+        {
+            var area = chart.ChartAreas["MainArea"];
+            var points = chart.Series[0].Points;
+            if (points.Count == 0) return;
+
+            double xMax = points[points.Count - 1].XValue;
+            area.AxisX.Minimum = 0;
+            area.AxisY.Minimum = 0;
+
+            if (xMax <= 100)
+            {
+                area.AxisX.Maximum = 100;
+                area.AxisX.Interval = 10;
+            }
+            else if (xMax <= 500)
+            {
+                area.AxisX.Maximum = Math.Ceiling(xMax / 50.0) * 50;
+                area.AxisX.Interval = 50;
+            }
+            else if (xMax <= 2000)
+            {
+                area.AxisX.Maximum = Math.Ceiling(xMax / 200.0) * 200;
+                area.AxisX.Interval = 200;
+            }
+            else
+            {
+                area.AxisX.Maximum = Math.Ceiling(xMax / 500.0) * 500;
+                area.AxisX.Interval = 500;
+            }
         }
 
         private int EstimateContainerSize(CompressedFileFormat.Container c)
@@ -795,16 +820,8 @@ namespace MutliMediaProject
             sb.AppendLine("Quantization bits: " + r.Settings.QuantizationBits);
             if (r.Settings.Algorithm == CompressionAlgorithm.NonlinearQuantization)
                 sb.AppendLine("Mu (\u03BC)            : " + r.Settings.Mu);
-            if (r.Settings.Algorithm == CompressionAlgorithm.DeltaModulation
-             || r.Settings.Algorithm == CompressionAlgorithm.AdaptiveDeltaModulation)
-            {
+            if (r.Settings.Algorithm == CompressionAlgorithm.DeltaModulation)
                 sb.AppendLine("Step size        : " + r.Settings.StepSize);
-                if (r.Settings.Algorithm == CompressionAlgorithm.AdaptiveDeltaModulation)
-                {
-                    sb.AppendLine("Min step (ADM)   : " + r.Settings.MinStepSize);
-                    sb.AppendLine("Max step (ADM)   : " + r.Settings.MaxStepSize);
-                }
-            }
             sb.AppendLine();
             sb.AppendLine("Original size    : " + FormatBytes(r.OriginalSizeBytes));
             sb.AppendLine("Compressed size  : " + FormatBytes(r.CompressedSizeBytes));

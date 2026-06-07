@@ -37,15 +37,11 @@ namespace MutliMediaProject
         private NumericUpDown numQuantBits;
         private NumericUpDown numMu;
         private NumericUpDown numStep;
-        private NumericUpDown numMaxStep;
-        private NumericUpDown numMinStep;
         private Label lblAlgorithm;
         private Label lblSampleRate;
         private Label lblQuantBits;
         private Label lblMu;
         private Label lblStep;
-        private Label lblMaxStep;
-        private Label lblMinStep;
         private Button btnResetSettings;
 
         // Actions
@@ -84,9 +80,9 @@ namespace MutliMediaProject
 
             this.SuspendLayout();
             this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(1080, 820);
+            this.ClientSize = new Size(1080, 900);
             this.Text = "Audio Compression Studio";
-            this.MinimumSize = new Size(1000, 760);
+            this.MinimumSize = new Size(1000, 820);
             this.BackColor = Color.FromArgb(245, 247, 250);
             this.Font = new Font("Segoe UI", 9f);
             this.AllowDrop = true;
@@ -192,7 +188,7 @@ namespace MutliMediaProject
             {
                 Text = "3. Compression Settings",
                 Location = new Point(540, 180),
-                Size = new Size(528, 200),
+                Size = new Size(528, 168),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.White
             };
@@ -227,20 +223,10 @@ namespace MutliMediaProject
             this.grpSettings.Controls.Add(this.lblStep);
             this.grpSettings.Controls.Add(this.numStep);
 
-            this.lblMinStep = NewLabel("Min step (ADM):", sCol1X, 30 + 3 * rh, lblW);
-            this.numMinStep = new NumericUpDown { Location = new Point(sCol1X + lblW, 27 + 3 * rh), Size = new Size(ctlW, 24), Minimum = 1, Maximum = 5000, Value = 50, Increment = 10 };
-            this.grpSettings.Controls.Add(this.lblMinStep);
-            this.grpSettings.Controls.Add(this.numMinStep);
-
-            this.lblMaxStep = NewLabel("Max step (ADM):", sCol2X, 30 + 3 * rh, lblW);
-            this.numMaxStep = new NumericUpDown { Location = new Point(sCol2X + lblW, 27 + 3 * rh), Size = new Size(ctlW, 24), Minimum = 100, Maximum = 32000, Value = 3000, Increment = 100 };
-            this.grpSettings.Controls.Add(this.lblMaxStep);
-            this.grpSettings.Controls.Add(this.numMaxStep);
-
             this.btnResetSettings = new Button
             {
                 Text = "Reset to Original",
-                Location = new Point(sCol1X, 30 + 4 * rh + 8),
+                Location = new Point(sCol1X, 30 + 3 * rh + 8),
                 Size = new Size(160, 30),
                 BackColor = Color.FromArgb(108, 117, 125),
                 ForeColor = Color.White,
@@ -272,8 +258,8 @@ namespace MutliMediaProject
             this.grpProgress = new GroupBox
             {
                 Text = "4. Real-time Progress",
-                Location = new Point(12, 388),
-                Size = new Size(1056, 230),
+                Location = new Point(12, 340),
+                Size = new Size(1056, 310),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.White
             };
@@ -299,16 +285,16 @@ namespace MutliMediaProject
             };
             this.grpProgress.Controls.Add(this.lblStatus);
 
-            this.chartRatio = CreateChart("ratio", "Compression ratio (input/output)", "Time (s)", "Ratio", Color.FromArgb(0, 120, 215));
+            this.chartRatio = CreateChart("ratio", "Compression ratio (input/output)", "Time (ms)", "Ratio", Color.FromArgb(0, 120, 215));
             this.chartRatio.Location = new Point(14, 82);
-            this.chartRatio.Size = new Size(510, 140);
-            this.chartRatio.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            this.chartRatio.Size = new Size(510, 218);
+            this.chartRatio.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             this.grpProgress.Controls.Add(this.chartRatio);
 
-            this.chartSpeed = CreateChart("speed", "Processing speed", "Time (s)", "MB/s", Color.FromArgb(40, 167, 69));
+            this.chartSpeed = CreateChart("speed", "Processing speed", "Time (ms)", "MB/s", Color.FromArgb(40, 167, 69));
             this.chartSpeed.Location = new Point(532, 82);
-            this.chartSpeed.Size = new Size(510, 140);
-            this.chartSpeed.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            this.chartSpeed.Size = new Size(510, 218);
+            this.chartSpeed.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             this.grpProgress.Controls.Add(this.chartSpeed);
 
             // =============================================================
@@ -317,7 +303,7 @@ namespace MutliMediaProject
             this.grpReport = new GroupBox
             {
                 Text = "5. Report",
-                Location = new Point(12, 626),
+                Location = new Point(12, 658),
                 Size = new Size(1056, 162),
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.White
@@ -414,22 +400,32 @@ namespace MutliMediaProject
             };
             area.AxisX.Title = xAxisTitle;
             area.AxisY.Title = yAxisTitle;
+            area.AxisX.Minimum = 0;
+            area.AxisY.Minimum = 0;
+            area.AxisX.LabelStyle.Format = "0";
+            area.AxisY.LabelStyle.Format = "0.##";
+            area.AxisX.Interval = 10;
+            area.AxisX.Maximum = 100;
             area.AxisX.TitleFont = new Font("Segoe UI", 8f);
             area.AxisY.TitleFont = new Font("Segoe UI", 8f);
-            area.AxisX.LabelStyle.Font = new Font("Segoe UI", 7.5f);
-            area.AxisY.LabelStyle.Font = new Font("Segoe UI", 7.5f);
+            area.AxisX.LabelStyle.Font = new Font("Segoe UI", 8f);
+            area.AxisY.LabelStyle.Font = new Font("Segoe UI", 8f);
             area.AxisX.LineColor = Color.FromArgb(180, 185, 195);
             area.AxisY.LineColor = Color.FromArgb(180, 185, 195);
             area.AxisX.MajorGrid.LineColor = Color.FromArgb(225, 228, 232);
             area.AxisY.MajorGrid.LineColor = Color.FromArgb(225, 228, 232);
             area.AxisX.MajorTickMark.LineColor = Color.FromArgb(180, 185, 195);
             area.AxisY.MajorTickMark.LineColor = Color.FromArgb(180, 185, 195);
-            area.AxisY.IsStartedFromZero = true;
+            area.InnerPlotPosition.Auto = false;
+            area.InnerPlotPosition.X = 10;
+            area.InnerPlotPosition.Y = 8;
+            area.InnerPlotPosition.Width = 86;
+            area.InnerPlotPosition.Height = 82;
             chart.ChartAreas.Add(area);
 
             var series = new Series(seriesName)
             {
-                ChartType = SeriesChartType.SplineArea,
+                ChartType = SeriesChartType.Area,
                 Color = Color.FromArgb(140, seriesColor),
                 BorderColor = seriesColor,
                 BorderWidth = 2,

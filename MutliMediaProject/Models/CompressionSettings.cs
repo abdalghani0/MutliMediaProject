@@ -17,14 +17,8 @@ namespace MutliMediaProject.Models
         /// <summary>Mu parameter for nonlinear (\u03BC-law) quantization (typically 255).</summary>
         public float Mu { get; set; } = 255f;
 
-        /// <summary>Step size used by Delta Modulation (and as the initial step for ADM).</summary>
+        /// <summary>Step size used by Delta Modulation.</summary>
         public float StepSize { get; set; } = 200f;
-
-        /// <summary>Maximum step size for Adaptive Delta Modulation.</summary>
-        public float MaxStepSize { get; set; } = 3000f;
-
-        /// <summary>Minimum step size for Adaptive Delta Modulation.</summary>
-        public float MinStepSize { get; set; } = 50f;
 
         public CompressionSettings Clone()
         {

@@ -7,3 +7,10 @@ C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaP
 C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Debug\MutliMediaProject.csproj.CoreCompileInputs.cache
 C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Debug\MutliMediaProject.exe
 C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Debug\MutliMediaProject.pdb
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Debug\NAudio.Core.dll
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Debug\NAudio.dll
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Debug\NAudio.WinMM.dll
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Debug\NAudio.xml
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Debug\NAudio.Core.xml
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\bin\Debug\NAudio.WinMM.xml
+C:\Users\ASUS\Desktop\Projects\Personal\university\MutliMediaProject\MutliMediaProject\obj\Debug\MutliMed.6491CB23.Up2Date

@@ -4,8 +4,7 @@ namespace MutliMediaProject.Models
     {
         NonlinearQuantization = 0,
         DifferentialPcm = 1,
-        DeltaModulation = 2,
-        AdaptiveDeltaModulation = 3
+        DeltaModulation = 2
     }
 
     public static class CompressionAlgorithmExtensions
@@ -20,8 +19,6 @@ namespace MutliMediaProject.Models
                     return "Differential PCM (DPCM)";
                 case CompressionAlgorithm.DeltaModulation:
                     return "Delta Modulation (DM)";
-                case CompressionAlgorithm.AdaptiveDeltaModulation:
-                    return "Adaptive Delta Modulation (ADM)";
                 default:
                     return algorithm.ToString();
             }

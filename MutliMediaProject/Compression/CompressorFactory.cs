@@ -15,8 +15,6 @@ namespace MutliMediaProject.Compression
                     return new DpcmCompressor();
                 case CompressionAlgorithm.DeltaModulation:
                     return new DeltaModulationCompressor();
-                case CompressionAlgorithm.AdaptiveDeltaModulation:
-                    return new AdaptiveDeltaModulationCompressor();
                 default:
                     throw new NotSupportedException("Unsupported algorithm: " + algorithm);
             }
